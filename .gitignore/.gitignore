@@ -1,0 +1,70 @@
+Sub lqt()
+
+    '禁止屏幕刷新，节省资源
+    Application.ScreenUpdating = False
+    
+    '
+    Set d = CreateObject("scripting.dictionary")
+    
+    For Each sht In Sheets
+        Set d(sht.Name) = sht
+        hs = d(sht.Name).UsedRange.Rows.Count
+        d(sht.Name).Range("F2:K" & hs).Clear
+    Next
+    
+    '同一文件夹下的文件都会被汇总
+    mypath = ThisWorkbook.Path & "\"
+    
+    '遍历整个文件夹，汇总所有EXCEL文件
+    myname = Dir(mypath & "*.xlsx")
+    Do While myname <> ""
+        
+        With GetObject(mypath & myname)
+            
+            '寻找sheet名一致的文件，如果存在，复制粘贴，不存在则关闭
+            For Each sht In .Sheets
+            
+                '
+                If d.Exists(sht.Name) Then
+                   'MsgBox (myname)
+                   hs = d(sht.Name).UsedRange.Rows.Count
+                   hss = sht.UsedRange.Rows.Count
+                   'MsgBox (hs)
+                   'MsgBox (hss)
+                       For i = 2 To hs
+                           For j = 2 To hss
+                               If (d(sht.Name).Range("A" & i).Value = sht.Range("A" & j).Value And d(sht.Name).Range("B" & i).Value = sht.Range("B" & j).Value And d(sht.Name).Range("C" & i).Value = sht.Range("C" & j).Value And d(sht.Name).Range("D" & i).Value = sht.Range("D" & j).Value And d(sht.Name).Range("E" & i).Value = sht.Range("E" & j).Value And d(sht.Name).Range("F" & i).Value = "" And d(sht.Name).Range("G" & i).Value = "" And d(sht.Name).Range("H" & i).Value = "") Then
+                                      'MsgBox (i & j & "匹配")
+                                      sht.Cells(j, 6).Copy d(sht.Name).Cells(i, 6)
+                                      sht.Cells(j, 7).Copy d(sht.Name).Cells(i, 7)
+                                      sht.Cells(j, 8).Copy d(sht.Name).Cells(i, 8)
+                                      d(sht.Name).Cells(i, 9) = myname
+                                ElseIf (d(sht.Name).Range("A" & i).Value <> sht.Range("A" & j).Value And d(sht.Name).Range("B" & i).Value <> sht.Range("B" & j).Value And d(sht.Name).Range("C" & i).Value <> sht.Range("C" & j).Value And d(sht.Name).Range("D" & i).Value <> sht.Range("D" & j).Value And d(sht.Name).Range("E" & i).Value <> sht.Range("E" & j).Value) Then
+                                'MsgBox (i & j & "不匹配")
+                                ElseIf (d(sht.Name).Range("A" & i).Value = sht.Range("A" & j).Value And d(sht.Name).Range("B" & i).Value = sht.Range("B" & j).Value And d(sht.Name).Range("C" & i).Value = sht.Range("C" & j).Value And d(sht.Name).Range("D" & i).Value = sht.Range("D" & j).Value And d(sht.Name).Range("E" & i).Value = sht.Range("E" & j).Value And d(sht.Name).Range("F" & i).Value <> "") Then
+                                    'MsgBox (i & j & "有冲突")
+                                    d(sht.Name).Cells(i, 11) = myname
+                                    d(sht.Name).Cells(i, 10) = "有冲突"
+                                End If
+                           Next
+                        Next
+                
+                End If
+            Next
+           
+            '关闭子文件，不保存修改
+            .Close False
+            
+        End With
+        
+        '查找下一个子文件
+        myname = Dir
+    Loop
+    
+    
+    
+    
+    '恢复屏幕刷新
+    Application.ScreenUpdating = True
+    
+End Sub
